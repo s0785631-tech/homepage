@@ -1,52 +1,68 @@
 import 'package:flutter/material.dart';
 
-class CategoriasHorizontal extends StatelessWidget {
+class CategoriasHorizontal extends StatefulWidget {
   const CategoriasHorizontal({super.key});
 
-  static const List<_SubCategory> _items = [
-    _SubCategory(
-      label: 'Tenis',
-      imageUrl:
-          'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=300',
-    ),
-    _SubCategory(
-      label: 'Botas',
-      imageUrl:
-          'https://images.pexels.com/photos/267301/pexels-photo-267301.jpeg?auto=compress&cs=tinysrgb&w=300',
-    ),
-    _SubCategory(
-      label: 'Camisetas',
-      imageUrl:
-          'https://images.pexels.com/photos/996329/pexels-photo-996329.jpeg?auto=compress&cs=tinysrgb&w=300',
-    ),
-    _SubCategory(
-      label: 'Futbol Sports',
-      imageUrl:
-          'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=300',
-    ),
-    _SubCategory(
-      label: 'Accesorios',
-      imageUrl:
-          'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=300',
-    ),
-    _SubCategory(
-      label: 'Deportivo',
-      imageUrl:
-          'https://images.pexels.com/photos/2827400/pexels-photo-2827400.jpeg?auto=compress&cs=tinysrgb&w=300',
-    ),
-  ];
+  @override
+  State<CategoriasHorizontal> createState() => _CategoriasHorizontalState();
+}
+
+class _CategoriasHorizontalState extends State<CategoriasHorizontal> {
+  late Future<List<_SubCategory>> _categoriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _categoriesFuture = _loadCategories();
+  }
+
+  Future<List<_SubCategory>> _loadCategories() async {
+    await Future.delayed(const Duration(seconds: 2));
+    return [
+      const _SubCategory(label: 'Tenis', imageUrl: ''),
+      const _SubCategory(label: 'Botas', imageUrl: ''),
+      const _SubCategory(label: 'Camisetas', imageUrl: ''),
+      const _SubCategory(label: 'Futbol Sports', imageUrl: ''),
+      const _SubCategory(label: 'Accesorios', imageUrl: ''),
+      const _SubCategory(label: 'Deportivo', imageUrl: ''),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 108,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 18),
-        itemBuilder: (context, i) => _SubCategoryItem(item: _items[i]),
-      ),
+    return FutureBuilder<List<_SubCategory>>(
+      future: _categoriesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return SizedBox(
+            height: 108,
+            child: Center(
+              child: Image.asset(
+                'assets/images/Baski_Carga.gif',
+                width: 60,
+                height: 60,
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const SizedBox(height: 108);
+        }
+
+        final categories = snapshot.data!;
+        return SizedBox(
+          height: 108,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 18),
+            itemBuilder: (context, i) =>
+                _SubCategoryItem(item: categories[i]),
+          ),
+        );
+      },
     );
   }
 }
@@ -78,20 +94,14 @@ class _SubCategoryItem extends StatelessWidget {
                   ),
                 ],
               ),
-              child: ClipOval(
-                child: Image.network(
-                  item.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFFE8E8E8),
-                    child: const Icon(
-                      Icons.image_outlined,
-                      color: Color(0xFFBDBDBD),
-                      size: 28,
+              child: item.imageUrl.isEmpty
+                  ? const SizedBox()
+                  : ClipOval(
+                      child: Image.network(
+                        item.imageUrl,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: 6),
             Text(
